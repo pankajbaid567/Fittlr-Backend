@@ -1,0 +1,22 @@
+lets map the user journey 
+
+1. login throught the google Auth/ Apple Auth/email etc 
+2. Sync his/her health data
+3. Make an appontment for the gym 
+4. ask our AI for the today's workout plan -> We will decide it using the previous data
+5. Enters the gym -> Scan the QR -> starts the workout
+6. Scan QR starts the workout and the app will send that workout info the health tracker and we will start to track the activity
+7. After the workout, the user will get the reward points depending upon the workout and consistency 
+8. The user can see the workout history and the reward points
+9. The user can see the machine status and the service due
+10. The user can report the machine if it is broken
+11. The user can see the gym 2d map
+12. The user can see the gym schedule
+13. The user can see the gym activity
+14. The user can see the gym service due
+15. The user can see the gym reward points
+16. The user can see the gym workout history
+17. The user can see the gym machine status 
+18. The user can see the gym machine service due
+19. The user can see the gym machine report
+20. The user can see the gym machine activity

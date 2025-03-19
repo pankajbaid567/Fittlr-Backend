@@ -1,0 +1,24 @@
+1.  add AuthO for google login
+2.  then add the google health sync in the data to your local device and dont save the data 
+3.  add spotify integration 
+4.  add the AI as at backend 
+5.  create user profile
+6.  Send daily whats app reminder for practice 
+7.  there will be two variants admin and the app
+8.  the new Auth System request based 
+9.  time blocking 
+10. Machine activity monitor 
+11. Machine service reminder 
+12. gym 2d map
+13. add the profile sectionm 
+14. add the image uploader multer 
+15. Machine Crud Operations 
+16. User Crud operation 
+17. user hard delete -> for privacy 
+18. Qr code detector for machine activity 
+19. Reward System for every day login 
+20. Admin panel
+21. Notification for machines near the ervice due
+22. in the app make an report button for if the machine is broken 
+23. sheaduler for using of the gym.
+24. add the user profile.
