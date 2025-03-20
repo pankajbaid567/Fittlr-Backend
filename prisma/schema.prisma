@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+model User {
+  googleId    String  @id @unique
+  email       String   @unique
+  name        String?
+  profileImg  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  FitnessToken FitnessToken?
+}
+
+model FitnessToken {
+  id            Int      @id @default(autoincrement())
+  access_token  String
+  refresh_token String
+  scope         String
+  token_type    String
+  expiry_date   Int
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [googleId])
+}
+
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
