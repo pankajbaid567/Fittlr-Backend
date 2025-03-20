@@ -4,28 +4,41 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const authenticateUser = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
-    throw new UnauthenticatedError("Authentication invalid");
+  // First check if user is authenticated via session
+  if (req.isAuthenticated() && req.user) {
+    // Session authentication passed, continue to next middleware
+    return next();
   }
 
-  const token = authHeader.split(" ")[1];
+  // If not authenticated by session, check JWT token
+  const authHeader = req.headers.authorization;
+  const tokenFromCookie = req.signedCookies?.token;
+
+  let token;
+  if (authHeader && authHeader.startsWith("Bearer")) {
+    token = authHeader.split(" ")[1];
+  } else if (tokenFromCookie) {
+    token = tokenFromCookie;
+  }
+
+  if (!token) {
+    throw new UnauthenticatedError(
+      "Authentication invalid - no token provided"
+    );
+  }
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Fetch fresh user data from database
+
+    // Fetch fresh user data from database using googleId
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
+      where: { googleId: payload.userId },
       select: {
-        id: true,
+        googleId: true,
         name: true,
         email: true,
-        isAdmin: true,
-        isContent_creator: true,
-        isValidator: true
-      }
+        profileImg: true,
+      },
     });
 
     if (!user) {
@@ -36,7 +49,9 @@ const authenticateUser = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    throw new UnauthenticatedError("Authentication invalid");
+    throw new UnauthenticatedError(
+      "Authentication invalid - token verification failed"
+    );
   }
 };
 

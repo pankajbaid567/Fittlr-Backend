@@ -4,7 +4,10 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "db:setup": "node scripts/setup-db.js",
+    "db:push": "npx prisma db push",
+    "db:generate": "npx prisma generate"
   },
   "keywords": [],
   "author": "",
