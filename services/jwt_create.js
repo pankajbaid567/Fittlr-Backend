@@ -11,7 +11,7 @@ const createJWT = (user) => {
     },
     process.env.JWT_SECRET, // Secret key for signing the token
     {
-      expiresIn: process.env.JWT_LIFETIME || "1d", // Token expiration time
+      expiresIn: process.env.JWT_LIFETIME || "7d", // Token expiration time
     }
   );
 };

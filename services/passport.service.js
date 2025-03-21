@@ -2,7 +2,7 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const { findOrCreateGoogleUser } = require("../controllers/auth/User");
+const { handleGoogleUser } = require("./googleAuth.service");
 
 // Check required environment variables
 const googleClientID = process.env.GOOGLE_CLIENT_ID;
@@ -38,19 +38,36 @@ passport.use(
       clientID: googleClientID,
       clientSecret: googleClientSecret,
       callbackURL: googleCallbackURL,
-      scope: ["profile", "email"],
+      scope: [
+        "profile",
+        "email",
+        "https://www.googleapis.com/auth/fitness.activity.read",
+        "https://www.googleapis.com/auth/fitness.location.read",
+        "https://www.googleapis.com/auth/fitness.activity.write"
+      ],
+      accessType: "offline",
+      prompt: "consent", // Always force consent screen
+      // Add these to ensure we get a refresh token
+      includeGrantedScopes: true,
+      hostedDomain: 'any',
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        // Use the controller function for database operations
-        const user = await findOrCreateGoogleUser(
-          profile,
-          accessToken,
-          refreshToken
-        );
+        // Enhanced logging
+        console.log(`Google OAuth successful for user ${profile.displayName} (${profile.id})`);
+        console.log(`Access token received: ${accessToken ? 'Yes (' + accessToken.substring(0, 10) + '...)' : 'No'}`);
+        console.log(`Refresh token received: ${refreshToken ? 'Yes (' + refreshToken.substring(0, 5) + '...)' : 'No'}`);
+        
+        if (!refreshToken) {
+          console.warn("WARNING: No refresh token received from Google. This will prevent long-term fitness data access.");
+          console.warn("Try revoking app permissions in your Google account and logging in again.");
+        }
+        
+        // Process user and tokens
+        const user = await handleGoogleUser(profile, accessToken, refreshToken);
         return done(null, user);
       } catch (error) {
-        console.error("Google OAuth strategy error:", error);
+        console.error("Google OAuth error:", error);
         return done(error, null);
       }
     }

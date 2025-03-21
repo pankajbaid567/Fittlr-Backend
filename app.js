@@ -11,9 +11,10 @@ const prisma = require("./db/connect");
 const { StatusCodes } = require("http-status-codes");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
-const passport = require("./services/passport.service");
+const passport = require("./services/passport"); // Fixed import path
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
+const authenticate = require("./middleware/authentication");
 
 // Setup cookie parser for signed cookies
 app.use(cookieParser(process.env.COOKIE_SECRET || "fittlr-cookie-secret"));
@@ -60,6 +61,38 @@ app.use(xss());
 
 // Routes
 const googleAuth = require("./routes/googleAuth");
+const googleFitController = require("./controllers/Home/googleFit.controller");
+
+// Add a manual route for requesting fitness permissions separately if needed
+app.get("/api/v1/user/auth/google/fitness-consent", (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ 
+      success: false, 
+      message: "You must be logged in to request fitness permissions" 
+    });
+  }
+  
+  passport.authenticate("google", {
+    scope: [
+      "https://www.googleapis.com/auth/fitness.activity.read",
+      "https://www.googleapis.com/auth/fitness.location.read",
+      "https://www.googleapis.com/auth/fitness.activity.write"
+    ],
+    accessType: 'offline',
+    prompt: 'consent',
+    includeGrantedScopes: true,
+    hostedDomain: 'any'
+  })(req, res);
+});
+
+// Directly define routes in app.js as a workaround
+const googleFitRouter = express.Router();
+googleFitRouter.get("/summary", googleFitController.getFitnessSummary);
+googleFitRouter.get("/steps", googleFitController.getStepCount);
+googleFitRouter.get("/calories", googleFitController.getCaloriesBurned);
+googleFitRouter.get("/distance", googleFitController.getDistanceWalked);
+
+app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRouter);
 app.use("/api/v1/user/auth/google", googleAuth);
 
 // Root route
@@ -72,7 +105,6 @@ app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 7900;
-
 const maxRetries = 5;
 const retryDelay = 2000; // 2 seconds
 
@@ -83,8 +115,12 @@ const connectWithRetry = async (retries = 0) => {
     return true;
   } catch (error) {
     if (retries < maxRetries) {
-      console.error(`Database connection attempt ${retries + 1} failed, retrying in ${retryDelay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      console.error(
+        `Database connection attempt ${
+          retries + 1
+        } failed, retrying in ${retryDelay}ms...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
       return connectWithRetry(retries + 1);
     }
     throw error;

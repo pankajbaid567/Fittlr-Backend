@@ -67,11 +67,42 @@ const generateUserToken = (user) => {
 
 // Handle Google OAuth callback
 const handleGoogleCallback = async (req, res) => {
+  console.log(
+    `Google OAuth callback received for user: ${req.user.name} (${req.user.googleId})`
+  );
+
   // User is already attached by Passport middleware
   const token = generateUserToken(req.user);
   setTokenCookie(res, token);
 
-  // Return success with token and user info
+  console.log(`JWT token generated for user: ${req.user.name}`);
+  
+  // Check if fitness tokens are available and fetch fitness data
+  let fitnessData = null;
+  try {
+    // Get fitness tokens for the user
+    const fitnessTokens = await prisma.fitnessToken.findUnique({
+      where: { userId: req.user.googleId },
+    });
+    
+    if (fitnessTokens) {
+      console.log(`Fitness tokens found, fetching fitness data for user: ${req.user.name}`);
+      // Import here to avoid circular dependency
+      const googleFitService = require('../../services/googleFit.service');
+      const days = 7; // Default to last 7 days
+      fitnessData = await googleFitService.getFitnessSummary(req.user.googleId, days);
+      console.log(`Fitness data successfully retrieved for user: ${req.user.name}`);
+    } else {
+      console.log(`No fitness tokens available for user: ${req.user.name}`);
+    }
+  } catch (error) {
+    console.error(`Error fetching fitness data: ${error.message}`);
+    // Continue with login response even if fitness data fails
+  }
+
+  console.log(`Login successful - returning user data to client`);
+
+  // Return success with token, user info and fitness data (if available)
   res.status(StatusCodes.OK).json({
     success: true,
     token,
@@ -81,11 +112,17 @@ const handleGoogleCallback = async (req, res) => {
       email: req.user.email,
       profileImg: req.user.profileImg,
     },
+    fitnessData: fitnessData, // Will be null if not available
+    hasFitnessAccess: !!fitnessData
   });
 };
 
 // Get current user profile
 const getCurrentUser = async (req, res) => {
+  console.log(
+    `Fetching current user profile for: ${req.user.name} (${req.user.googleId})`
+  );
+
   res.status(StatusCodes.OK).json({
     success: true,
     user: req.user,
@@ -113,13 +150,24 @@ const updateUser = async (req, res) => {
 
 // Get user's fitness tokens
 const getFitnessTokens = async (req, res) => {
+  console.log(
+    `Checking fitness tokens for user: ${req.user.name} (${req.user.googleId})`
+  );
+
   const fitnessTokens = await prisma.fitnessToken.findUnique({
     where: { userId: req.user.googleId },
   });
 
   if (!fitnessTokens) {
+    console.log(`No fitness tokens found for user: ${req.user.name}`);
     throw new NotFoundError("No fitness tokens found for this user");
   }
+
+  console.log(
+    `Fitness tokens found for user: ${req.user.name}, expiry: ${new Date(
+      fitnessTokens.expiry_date * 1000
+    )}`
+  );
 
   res.status(StatusCodes.OK).json({
     success: true,

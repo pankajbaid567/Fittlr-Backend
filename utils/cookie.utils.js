@@ -1,26 +1,31 @@
 /**
- * Sets a JWT token as an HTTP-only cookie
- * @param {Object} res - Express response object
- * @param {string} token - JWT token to be set as cookie
+ * Sets a JWT token in an HTTP-only cookie
  */
 const setTokenCookie = (res, token) => {
-  res.cookie("token", token, {
+  const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === 'production',
     signed: true,
     maxAge: 24 * 60 * 60 * 1000, // 1 day
-  });
+    path: '/'
+  };
+
+  res.cookie('token', token, cookieOptions);
 };
 
 /**
- * Clears the token cookie
- * @param {Object} res - Express response object
+ * Clears the JWT token cookie
  */
 const clearTokenCookie = (res) => {
-  res.clearCookie("token");
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    signed: true,
+    path: '/'
+  });
 };
 
 module.exports = {
   setTokenCookie,
-  clearTokenCookie,
+  clearTokenCookie
 };
