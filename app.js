@@ -14,10 +14,16 @@ const cookieParser = require("cookie-parser");
 const passport = require("./services/passport.service");
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
+const postRoutes = require('./routes/community/postRoutes');
+const commentRoutes = require('./routes/community/commentRoutes');
+const likeRoutes = require('./routes/community/likeRoutes');
+const challengeRoutes = require('./routes/challengeRoutes');
+const followRoutes = require('./routes/community/followRoutes');
+
 
 // Setup cookie parser for signed cookies
 app.use(cookieParser(process.env.COOKIE_SECRET || "fittlr-cookie-secret"));
-
+app.use(express.json());
 // Session setup for Passport.js
 app.use(
   session({
@@ -34,6 +40,15 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Routes
+app.use("/api/v1/community/posts", postRoutes);
+app.use("/api/v1/community/comments", commentRoutes);
+app.use("/api/v1/community/likes", likeRoutes);
+app.use("/api/v1/challenges", challengeRoutes);
+app.use('/api/v1/users', followRoutes);
+
+
 
 // Security Packages
 const helmet = require("helmet");
