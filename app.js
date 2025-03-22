@@ -64,6 +64,7 @@ const googleFitRoutere = require("./routes/googlefit");
 const profile = require("./routes/profile");
 const ticket = require("./routes/ticket");
 const booking = require("./routes/booking");
+const fallback = require("./routes/fallback")
 
 app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRoutere);
 app.use("/api/v1/user/profile", authenticate, profile);
