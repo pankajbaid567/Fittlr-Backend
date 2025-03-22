@@ -24,7 +24,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "dev",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
@@ -42,11 +42,12 @@ const rateLimiter = require("express-rate-limit");
 
 // CORS Configuration
 const corsOptions = {
-  origin: process.env.CLIENT_URL || "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: process.env.NODE_ENV === 'dev' ? process.env.CLIENT_URL : '*',
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
   credentials: true,
   optionsSuccessStatus: StatusCodes.OK,
+  maxAge: process.env.NODE_ENV === 'dev' ? 600 : 86400 // 10 mins in prod, 24h in dev
 };
 
 // Middleware

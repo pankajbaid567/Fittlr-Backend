@@ -161,9 +161,20 @@ const getAvailability = async (req, res) => {
             timeBasedTraffic
           );
 
+          // Format time in a human-readable format (e.g., "6:00 am")
+          const formattedTime = currentSlotStart.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          });
+
           timeSlots.push({
             startTime: currentSlotStart.toISOString(),
             endTime: currentSlotEnd.toISOString(),
+            formattedTime: formattedTime,
+            bookings: existingBookings,
+            available: availableCapacity,
+            totalCapacity: gym.MaxCapacity,
             availableCapacity,
             capacityPercentage: Math.round(slotCapacityPercentage),
             isAvailable: availableCapacity > 0,
@@ -180,6 +191,14 @@ const getAvailability = async (req, res) => {
         // Move to next slot
         currentSlotStart = currentSlotEnd;
       }
+
+      // Add hourly availability summary in the requested format
+      response.hourlyAvailability = timeSlots.map((slot) => ({
+        time: slot.formattedTime,
+        bookings: slot.bookings,
+        available: slot.available,
+        isAvailable: slot.isAvailable,
+      }));
 
       response.timeSlots = timeSlots;
       return res.status(StatusCodes.OK).json(response);
