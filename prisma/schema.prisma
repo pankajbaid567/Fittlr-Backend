@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearchPostgres"]
+  previewFeatures = ["fullTextSearch"]
 }
 datasource db {
   provider = "postgresql"
@@ -24,6 +24,7 @@ model User {
   GymBooking  GymBooking[]
   WorkoutPlan WorkoutPlan[]
   tickets tickets[]
+  password   String?
   gym         Gym?    // Add this relation field
 
   posts        Post[]
@@ -31,11 +32,9 @@ model User {
   likes        Like[]
   followers    Follow[]     @relation("Following")
   following    Follow[]     @relation("Followers")
-
   // Challenges
   sentChallenges    Challenge[] @relation("SentChallenges")
   receivedChallenges Challenge[] @relation("ReceivedChallenges")
-
 }
 
 model Admin {
@@ -74,7 +73,7 @@ model Gym {
   openingHours  OpeningHours[]
   admin         Admin?
   GymBooking    GymBooking[]
- userId        String?       @unique // This makes it a one-to-one relation
+  userId        String?       @unique // This makes it a one-to-one relation
   user          User?         @relation(fields: [userId], references: [googleId])
 }  
 
