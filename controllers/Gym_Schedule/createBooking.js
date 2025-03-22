@@ -141,4 +141,4 @@ const createNewBooking = async (req, res) => {
 
 module.exports = {
   createNewBooking,
-
+};

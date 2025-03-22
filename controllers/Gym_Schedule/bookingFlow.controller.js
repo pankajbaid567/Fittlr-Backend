@@ -3,7 +3,6 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { BadRequestError, NotFoundError } = require("../../errors");
 
-
 const getAvailability = async (req, res) => {
   const { gymId, date, startTime, duration } = req.body;
 
@@ -329,6 +328,15 @@ const createBooking = async (req, res) => {
   }
 
   try {
+    // Verify user exists first - use googleId instead of id
+    const userExists = await prisma.user.findUnique({
+      where: { googleId: userId }
+    });
+
+    if (!userExists) {
+      throw new BadRequestError(`User with ID ${userId} does not exist`);
+    }
+
     // Check if gym exists
     const gym = await prisma.gym.findUnique({
       where: { id: parseInt(gymId) },
@@ -528,6 +536,12 @@ const createBooking = async (req, res) => {
       calculatedEndTime: end.toISOString(), // Include the calculated end time in the response
     });
   } catch (error) {
+    // Add more specific error handling
+    if (error.code === "P2003") {
+      throw new BadRequestError(
+        "Foreign key constraint error: Make sure the user ID exists"
+      );
+    }
     throw error;
   }
 };
