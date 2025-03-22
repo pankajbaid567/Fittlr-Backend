@@ -1,25 +1,28 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const {
   createPost,
   getPosts,
   getPost,
   updatePost,
-  deletePost
-} = require('../../controllers/community/postController');
-const authenticateUser = require('../../middleware/authentication');
+  deletePost,
+} = require("../../controllers/community/postController");
+const authenticateUser = require("../../middleware/authentication");
+const { uploadPostImage } = require("../../middleware/upload");
 
 // Apply authentication middleware to all routes
 router.use(authenticateUser);
 
 // Post routes
-router.route('/')
-  .post(createPost)  // Create a new post
-  .get(getPosts);    // Get all posts with pagination
+router
+  .route("/")
+  .post(uploadPostImage, createPost) // Add image upload middleware
+  .get(getPosts); // Get all posts with pagination
 
-router.route('/:id')
-  .get(getPost)      // Get a single post by ID
-  .patch(updatePost) // Update a post
+router
+  .route("/:id")
+  .get(getPost) // Get a single post by ID
+  .patch(uploadPostImage, updatePost) // Add image upload middleware
   .delete(deletePost); // Delete a post
 
 module.exports = router;

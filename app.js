@@ -80,11 +80,11 @@ app.use("/api/v1/user/booking", booking);
 
 app.use("/api/v1/user/auth/google", googleAuth);
 
-app.use("/api/v1/community/posts", postRoutes);
-app.use("/api/v1/community/comments", commentRoutes);
-app.use("/api/v1/community/likes", likeRoutes);
-app.use("/api/v1/challenges", challengeRoutes);
-app.use('/api/v1/users', followRoutes);
+app.use("/api/v1/user/community/posts", postRoutes);
+app.use("/api/v1/user/community/comments", commentRoutes);
+app.use("/api/v1/user/community/likes", likeRoutes);
+app.use("/api/v1/user/challenges", challengeRoutes);
+app.use('/api/v1/user/users', followRoutes);
 
 // Root route
 app.get("/", (req, res) => {
