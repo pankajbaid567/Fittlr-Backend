@@ -26,6 +26,16 @@ model User {
   tickets tickets[]
   gym         Gym?    // Add this relation field
 
+  posts        Post[]
+  comments     Comment[]
+  likes        Like[]
+  followers    Follow[]     @relation("Following")
+  following    Follow[]     @relation("Followers")
+
+  // Challenges
+  sentChallenges    Challenge[] @relation("SentChallenges")
+  receivedChallenges Challenge[] @relation("ReceivedChallenges")
+
 }
 
 model Admin {
@@ -165,4 +175,78 @@ model tickets {
   machine     Machine? @relation(fields: [machineId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+
+model Post {
+  id          String   @id @default(uuid())
+  content     String
+  imageUrl    String?  // Add this line - the ? makes it optional
+  user        User     @relation(fields: [userId], references: [googleId])
+  userId      String
+  comments    Comment[]
+  likes       Like[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model Comment {
+  id          String   @id @default(uuid())
+  content     String
+  user        User     @relation(fields: [userId], references: [googleId])
+  userId      String
+  post        Post     @relation(fields: [postId], references: [id])
+  postId      String
+  likes       Like[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [googleId])
+  userId    String
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    String?
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  commentId String?
+  createdAt DateTime @default(now())
+
+  // Add this compound unique constraint
+  @@unique([userId, postId])
+}
+
+model Follow {
+  id           String  @id @default(uuid())
+  follower     User    @relation("Following", fields: [followerId], references: [googleId])
+  followerId   String
+  following    User    @relation("Followers", fields: [followingId], references: [googleId])
+  followingId  String
+  createdAt    DateTime @default(now())
+}
+
+enum ChallengeType {
+  COUNT_BASED  // e.g., 50 Push-ups
+  TIME_BASED   // e.g., Run for 10 minutes
+}
+
+enum ChallengeStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  REJECTED
+}
+
+model Challenge {
+  id           String         @id @default(uuid())
+  sender       User           @relation("SentChallenges", fields: [senderId], references: [googleId])
+  senderId     String
+  receiver     User           @relation("ReceivedChallenges", fields: [receiverId], references: [googleId])
+  receiverId   String
+  type         ChallengeType
+  description  String
+  count        Int?           // Only if type is COUNT_BASED (e.g., 50 Push-ups)
+  duration     Int?           // Only if type is TIME_BASED (e.g., Run for 10 minutes)
+  status       ChallengeStatus @default(PENDING)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }

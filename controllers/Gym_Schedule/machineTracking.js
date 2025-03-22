@@ -130,4 +130,4 @@ const checkMachinesForUpcomingService = async (gymId) => {
 module.exports = {
   updateMachineUsage,
   checkMachinesForUpcomingService,
-};
+

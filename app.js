@@ -66,6 +66,12 @@ const ticket = require("./routes/ticket");
 const booking = require("./routes/booking");
 const fallback = require("./routes/fallback")
 
+const postRoutes = require('./routes/community/postRoutes');
+const commentRoutes = require('./routes/community/commentRoutes');
+const likeRoutes = require('./routes/community/likeRoutes');
+const challengeRoutes = require('./routes/challengeRoutes');
+const followRoutes = require('./routes/community/followRoutes');
+
 app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRoutere);
 app.use("/api/v1/user/profile", authenticate, profile);
 // app.use("/api/v1/user/ticket", authenticate, ticket);
@@ -73,6 +79,12 @@ app.use("/api/v1/user/ticket", ticket);
 app.use("/api/v1/user/booking", booking);
 
 app.use("/api/v1/user/auth/google", googleAuth);
+
+app.use("/api/v1/community/posts", postRoutes);
+app.use("/api/v1/community/comments", commentRoutes);
+app.use("/api/v1/community/likes", likeRoutes);
+app.use("/api/v1/challenges", challengeRoutes);
+app.use('/api/v1/users', followRoutes);
 
 // Root route
 app.get("/", (req, res) => {
@@ -119,3 +131,4 @@ const start = async () => {
 };
 
 start();
+
