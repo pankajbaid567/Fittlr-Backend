@@ -64,6 +64,7 @@ const googleFitRoutere = require("./routes/googlefit");
 const profile = require("./routes/profile");
 const ticket = require("./routes/ticket");
 const booking = require("./routes/booking");
+const fallback = require("./routes/fallback")
 
 const postRoutes = require('./routes/community/postRoutes');
 const commentRoutes = require('./routes/community/commentRoutes');

@@ -138,4 +138,3 @@ const getBookingSummary = async (req, res) => {
 
 module.exports = {
   getBookingSummary,
-};
