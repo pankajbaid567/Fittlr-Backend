@@ -11,12 +11,12 @@ const authenticateWithGoogle = (req, res, next) => {
       "email",
       "https://www.googleapis.com/auth/fitness.activity.read",
       "https://www.googleapis.com/auth/fitness.location.read",
-      "https://www.googleapis.com/auth/fitness.activity.write"
+      "https://www.googleapis.com/auth/fitness.activity.write",
     ],
-    accessType: 'offline',
-    prompt: 'consent',  // Always show consent screen to ensure refresh token
+    accessType: "offline",
+    prompt: "consent", // Always show consent screen to ensure refresh token
     includeGrantedScopes: true,
-    hostedDomain: 'any'
+    hostedDomain: "any",
   })(req, res, next);
 };
 

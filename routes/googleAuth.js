@@ -31,19 +31,29 @@ router.get("/logout", authenticateUser, logoutUser);
 router.get("/debug-tokens", authenticateUser, async (req, res) => {
   try {
     const tokens = await prisma.fitnessToken.findUnique({
-      where: { userId: req.user.googleId }
+      where: { userId: req.user.googleId },
     });
-    
+
     res.status(200).json({
       hasTokens: !!tokens,
-      tokens: tokens ? {
-        hasAccessToken: !!tokens.access_token,
-        hasRefreshToken: !!tokens.refresh_token,
-        accessTokenPreview: tokens.access_token ? tokens.access_token.substring(0, 10) + '...' : null,
-        refreshTokenPreview: tokens.refresh_token ? tokens.refresh_token.substring(0, 5) + '...' : null,
-        expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date * 1000).toISOString() : null,
-        isExpired: tokens.expiry_date ? (tokens.expiry_date < Math.floor(Date.now() / 1000)) : null
-      } : null
+      tokens: tokens
+        ? {
+            hasAccessToken: !!tokens.access_token,
+            hasRefreshToken: !!tokens.refresh_token,
+            accessTokenPreview: tokens.access_token
+              ? tokens.access_token.substring(0, 10) + "..."
+              : null,
+            refreshTokenPreview: tokens.refresh_token
+              ? tokens.refresh_token.substring(0, 5) + "..."
+              : null,
+            expiryDate: tokens.expiry_date
+              ? new Date(tokens.expiry_date * 1000).toISOString()
+              : null,
+            isExpired: tokens.expiry_date
+              ? tokens.expiry_date < Math.floor(Date.now() / 1000)
+              : null,
+          }
+        : null,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

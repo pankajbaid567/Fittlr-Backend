@@ -4,28 +4,28 @@
 const setTokenCookie = (res, token) => {
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === "production",
     signed: true,
     maxAge: 24 * 60 * 60 * 1000, // 1 day
-    path: '/'
+    path: "/",
   };
 
-  res.cookie('token', token, cookieOptions);
+  res.cookie("token", token, cookieOptions);
 };
 
 /**
  * Clears the JWT token cookie
  */
 const clearTokenCookie = (res) => {
-  res.clearCookie('token', {
+  res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === "production",
     signed: true,
-    path: '/'
+    path: "/",
   });
 };
 
 module.exports = {
   setTokenCookie,
-  clearTokenCookie
+  clearTokenCookie,
 };

@@ -61,38 +61,17 @@ app.use(xss());
 
 // Routes
 const googleAuth = require("./routes/googleAuth");
-const googleFitController = require("./controllers/Home/googleFit.controller");
+const googleFitRoutere = require("./routes/googlefit");
+const profile = require("./routes/profile");
+const ticket = require("./routes/ticket");
+const booking = require("./routes/booking");
 
-// Add a manual route for requesting fitness permissions separately if needed
-app.get("/api/v1/user/auth/google/fitness-consent", (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ 
-      success: false, 
-      message: "You must be logged in to request fitness permissions" 
-    });
-  }
-  
-  passport.authenticate("google", {
-    scope: [
-      "https://www.googleapis.com/auth/fitness.activity.read",
-      "https://www.googleapis.com/auth/fitness.location.read",
-      "https://www.googleapis.com/auth/fitness.activity.write"
-    ],
-    accessType: 'offline',
-    prompt: 'consent',
-    includeGrantedScopes: true,
-    hostedDomain: 'any'
-  })(req, res);
-});
+app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRoutere);
+app.use("/api/v1/user/profile", authenticate, profile);
+// app.use("/api/v1/user/ticket", authenticate, ticket);
+app.use("/api/v1/user/ticket", ticket);
+app.use("/api/v1/user/booking", booking);
 
-// Directly define routes in app.js as a workaround
-const googleFitRouter = express.Router();
-googleFitRouter.get("/summary", googleFitController.getFitnessSummary);
-googleFitRouter.get("/steps", googleFitController.getStepCount);
-googleFitRouter.get("/calories", googleFitController.getCaloriesBurned);
-googleFitRouter.get("/distance", googleFitController.getDistanceWalked);
-
-app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRouter);
 app.use("/api/v1/user/auth/google", googleAuth);
 
 // Root route

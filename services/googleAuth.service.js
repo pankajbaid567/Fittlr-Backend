@@ -9,8 +9,10 @@ const { UnauthenticatedError } = require("../errors");
  */
 const handleGoogleUser = async (profile, accessToken, refreshToken) => {
   try {
-    console.log(`Processing Google user: ${profile.displayName} (${profile.id})`);
-    
+    console.log(
+      `Processing Google user: ${profile.displayName} (${profile.id})`
+    );
+
     // Check if user exists in database
     let user = await prisma.user.findUnique({
       where: { googleId: profile.id },
@@ -33,7 +35,9 @@ const handleGoogleUser = async (profile, accessToken, refreshToken) => {
 
     // If Google provided tokens, store them regardless of whether they're fitness tokens
     if (accessToken) {
-      console.log(`Storing/updating OAuth tokens for user: ${user.name} (${user.googleId})`);
+      console.log(
+        `Storing/updating OAuth tokens for user: ${user.name} (${user.googleId})`
+      );
       try {
         await prisma.fitnessToken.upsert({
           where: { userId: user.googleId },
@@ -55,7 +59,10 @@ const handleGoogleUser = async (profile, accessToken, refreshToken) => {
         });
         console.log(`Successfully stored tokens for user: ${user.name}`);
       } catch (tokenError) {
-        console.error(`Failed to store tokens for user ${user.name}:`, tokenError);
+        console.error(
+          `Failed to store tokens for user ${user.name}:`,
+          tokenError
+        );
         // Continue with the flow - don't throw error here
       }
     } else {

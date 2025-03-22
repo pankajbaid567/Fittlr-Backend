@@ -43,26 +43,42 @@ passport.use(
         "email",
         "https://www.googleapis.com/auth/fitness.activity.read",
         "https://www.googleapis.com/auth/fitness.location.read",
-        "https://www.googleapis.com/auth/fitness.activity.write"
+        "https://www.googleapis.com/auth/fitness.activity.write",
       ],
       accessType: "offline",
       prompt: "consent", // Always force consent screen
       // Add these to ensure we get a refresh token
       includeGrantedScopes: true,
-      hostedDomain: 'any',
+      hostedDomain: "any",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
         // Enhanced logging
-        console.log(`Google OAuth successful for user ${profile.displayName} (${profile.id})`);
-        console.log(`Access token received: ${accessToken ? 'Yes (' + accessToken.substring(0, 10) + '...)' : 'No'}`);
-        console.log(`Refresh token received: ${refreshToken ? 'Yes (' + refreshToken.substring(0, 5) + '...)' : 'No'}`);
-        
+        console.log(
+          `Google OAuth successful for user ${profile.displayName} (${profile.id})`
+        );
+        console.log(
+          `Access token received: ${
+            accessToken ? "Yes (" + accessToken.substring(0, 10) + "...)" : "No"
+          }`
+        );
+        console.log(
+          `Refresh token received: ${
+            refreshToken
+              ? "Yes (" + refreshToken.substring(0, 5) + "...)"
+              : "No"
+          }`
+        );
+
         if (!refreshToken) {
-          console.warn("WARNING: No refresh token received from Google. This will prevent long-term fitness data access.");
-          console.warn("Try revoking app permissions in your Google account and logging in again.");
+          console.warn(
+            "WARNING: No refresh token received from Google. This will prevent long-term fitness data access."
+          );
+          console.warn(
+            "Try revoking app permissions in your Google account and logging in again."
+          );
         }
-        
+
         // Process user and tokens
         const user = await handleGoogleUser(profile, accessToken, refreshToken);
         return done(null, user);

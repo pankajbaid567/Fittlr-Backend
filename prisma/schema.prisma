@@ -6,7 +6,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -17,6 +21,23 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   FitnessToken FitnessToken?
+  GymBooking  GymBooking[]
+  WorkoutPlan WorkoutPlan[]
+  tickets tickets[]
+  gym         Gym?    // Add this relation field
+
+}
+
+model Admin {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  password    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  gymId       Int?     @unique
+  gym         Gym?     @relation(fields: [gymId], references: [id])
+
 }
 
 model FitnessToken {
@@ -30,9 +51,118 @@ model FitnessToken {
   user          User     @relation(fields: [userId], references: [googleId])
 }
 
+model Gym {
+  id            Int           @id @default(autoincrement())
+  name          String
+  location      String
+  imageUrl      String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  machines      Machine[]
+  MaxCapacity   Int 
+  currnt_users  Int 
+  openingHours  OpeningHours[]
+  admin         Admin?
+  GymBooking    GymBooking[]
+ userId        String?       @unique // This makes it a one-to-one relation
+  user          User?         @relation(fields: [userId], references: [googleId])
+}  
 
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+model OpeningHours {
+  id          Int      @id @default(autoincrement())
+  dayOfWeek   Int      // 0-6 for Sunday-Saturday
+  openTime    String   // "HH:MM" format
+  closeTime   String   // "HH:MM" format
+  gymId       Int
+  gym         Gym      @relation(fields: [gymId], references: [id])
+}
+
+model Machine {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  imageUrl    String
+  No_Of_Uses  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  needService Boolean  @default(false)
+  status      String   @default("active") // active, inactive, maintenance
+  service     Service?
+  gymId       Int
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  MachineBooking MachineBooking[]
+  Exercise    Exercise[]
+  tickets     tickets[] // Relation to tickets
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  machine     Machine  @relation(fields: [machineId], references: [id])
+  machineId           Int      @unique
+  serviceDate         DateTime
+  createdAt           DateTime @default(now())
+  serviceIntervalHours Float   
+  notes               String?  
+  totalUsageHours     Float    @default(0)
+}
+
+model GymBooking {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  user        User     @relation(fields: [userId], references: [googleId])
+  gymId       Int
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  startTime   DateTime
+  endTime     DateTime
+  status      String   @default("confirmed") // confirmed, cancelled, completed
+  createdAt   DateTime @default(now())
+  machineBookings MachineBooking[]
+}
+
+model MachineBooking {
+  id          Int       @id @default(autoincrement())
+  bookingId   Int
+  booking     GymBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  machineId   Int
+  machine     Machine   @relation(fields: [machineId], references: [id])
+  duration    Int       // in minutes
+}
+
+model WorkoutPlan {
+  id          Int       @id @default(autoincrement())
+  userId      String
+  user        User      @relation(fields: [userId], references: [googleId])
+  name        String
+  description String?
+  exercises   Exercise[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Exercise {
+  id          Int       @id @default(autoincrement())
+  name        String
+  sets        Int?
+  reps        Int?
+  duration    Int?      // in minutes
+  notes       String?
+  planId      Int
+  plan        WorkoutPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  machineId   Int?
+  machine     Machine?  @relation(fields: [machineId], references: [id])
+}
+
+model tickets {
+  id          Int       @id @default(autoincrement())
+  userId      String
+  user        User      @relation(fields: [userId], references: [googleId])
+  title       String
+  description String?
+  status      String   @default("open") // open, closed
+  ticketType  String   @default("user") // user, service
+  machineId   Int?
+  machine     Machine? @relation(fields: [machineId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

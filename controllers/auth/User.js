@@ -76,7 +76,7 @@ const handleGoogleCallback = async (req, res) => {
   setTokenCookie(res, token);
 
   console.log(`JWT token generated for user: ${req.user.name}`);
-  
+
   // Check if fitness tokens are available and fetch fitness data
   let fitnessData = null;
   try {
@@ -84,14 +84,21 @@ const handleGoogleCallback = async (req, res) => {
     const fitnessTokens = await prisma.fitnessToken.findUnique({
       where: { userId: req.user.googleId },
     });
-    
+
     if (fitnessTokens) {
-      console.log(`Fitness tokens found, fetching fitness data for user: ${req.user.name}`);
+      console.log(
+        `Fitness tokens found, fetching fitness data for user: ${req.user.name}`
+      );
       // Import here to avoid circular dependency
-      const googleFitService = require('../../services/googleFit.service');
+      const googleFitService = require("../../services/googleFit.service");
       const days = 7; // Default to last 7 days
-      fitnessData = await googleFitService.getFitnessSummary(req.user.googleId, days);
-      console.log(`Fitness data successfully retrieved for user: ${req.user.name}`);
+      fitnessData = await googleFitService.getFitnessSummary(
+        req.user.googleId,
+        days
+      );
+      console.log(
+        `Fitness data successfully retrieved for user: ${req.user.name}`
+      );
     } else {
       console.log(`No fitness tokens available for user: ${req.user.name}`);
     }
@@ -113,7 +120,7 @@ const handleGoogleCallback = async (req, res) => {
       profileImg: req.user.profileImg,
     },
     fitnessData: fitnessData, // Will be null if not available
-    hasFitnessAccess: !!fitnessData
+    hasFitnessAccess: !!fitnessData,
   });
 };
 
