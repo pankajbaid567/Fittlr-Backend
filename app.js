@@ -16,10 +16,9 @@ const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
 const authenticate = require("./middleware/authentication");
 
-// Setup cookie parser for signed cookies
+
 app.use(cookieParser(process.env.COOKIE_SECRET || "fittlr-cookie-secret"));
 
-// Session setup for Passport.js
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "fittlr-session-secret",
@@ -28,7 +27,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
 );
@@ -66,6 +65,12 @@ const profile = require("./routes/profile");
 const ticket = require("./routes/ticket");
 const booking = require("./routes/booking");
 
+const postRoutes = require('./routes/community/postRoutes');
+const commentRoutes = require('./routes/community/commentRoutes');
+const likeRoutes = require('./routes/community/likeRoutes');
+const challengeRoutes = require('./routes/challengeRoutes');
+const followRoutes = require('./routes/community/followRoutes');
+
 app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRoutere);
 app.use("/api/v1/user/profile", authenticate, profile);
 // app.use("/api/v1/user/ticket", authenticate, ticket);
@@ -73,6 +78,12 @@ app.use("/api/v1/user/ticket", ticket);
 app.use("/api/v1/user/booking", booking);
 
 app.use("/api/v1/user/auth/google", googleAuth);
+
+app.use("/api/v1/community/posts", postRoutes);
+app.use("/api/v1/community/comments", commentRoutes);
+app.use("/api/v1/community/likes", likeRoutes);
+app.use("/api/v1/challenges", challengeRoutes);
+app.use('/api/v1/users', followRoutes);
 
 // Root route
 app.get("/", (req, res) => {
@@ -119,3 +130,4 @@ const start = async () => {
 };
 
 start();
+
