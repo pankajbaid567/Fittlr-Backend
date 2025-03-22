@@ -330,7 +330,7 @@ const createBooking = async (req, res) => {
   try {
     // Verify user exists first - use googleId instead of id
     const userExists = await prisma.user.findUnique({
-      where: { googleId: userId }
+      where: { googleId: userId },
     });
 
     if (!userExists) {
