@@ -16,7 +16,6 @@ const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
 const authenticate = require("./middleware/authentication");
 
-
 app.use(cookieParser(process.env.COOKIE_SECRET || "fittlr-cookie-secret"));
 
 app.use(
@@ -64,18 +63,19 @@ const googleFitRoutere = require("./routes/googlefit");
 const profile = require("./routes/profile");
 const ticket = require("./routes/ticket");
 const booking = require("./routes/booking");
-const fallback = require("./routes/fallback")
+const fallback = require("./routes/fallback");
 
-const postRoutes = require('./routes/community/postRoutes');
-const commentRoutes = require('./routes/community/commentRoutes');
-const likeRoutes = require('./routes/community/likeRoutes');
-const challengeRoutes = require('./routes/challengeRoutes');
-const followRoutes = require('./routes/community/followRoutes');
+const postRoutes = require("./routes/community/postRoutes");
+const commentRoutes = require("./routes/community/commentRoutes");
+const likeRoutes = require("./routes/community/likeRoutes");
+const challengeRoutes = require("./routes/challengeRoutes");
+const followRoutes = require("./routes/community/followRoutes");
 
 app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRoutere);
 app.use("/api/v1/user/profile", authenticate, profile);
 // app.use("/api/v1/user/ticket", authenticate, ticket);
 app.use("/api/v1/user/ticket", ticket);
+app.use("/api/v1/user/auth/fallback", fallback);
 app.use("/api/v1/user/booking", booking);
 
 app.use("/api/v1/user/auth/google", googleAuth);
@@ -84,7 +84,7 @@ app.use("/api/v1/user/community/posts", postRoutes);
 app.use("/api/v1/user/community/comments", commentRoutes);
 app.use("/api/v1/user/community/likes", likeRoutes);
 app.use("/api/v1/user/challenges", challengeRoutes);
-app.use('/api/v1/user/users', followRoutes);
+app.use("/api/v1/user/users", followRoutes);
 
 // Root route
 app.get("/", (req, res) => {
@@ -131,4 +131,3 @@ const start = async () => {
 };
 
 start();
-

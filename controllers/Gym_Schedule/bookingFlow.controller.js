@@ -3,10 +3,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { BadRequestError, NotFoundError } = require("../../errors");
 
-/**
- * GET: Fetch all availability data in one request
- * This endpoint returns dates, time slots, and machines available for booking
- */
+
 const getAvailability = async (req, res) => {
   const { gymId, date, startTime, duration } = req.body;
 
@@ -25,7 +22,6 @@ const getAvailability = async (req, res) => {
       throw new NotFoundError(`No gym found with id ${gymId}`);
     }
 
-    // Calculate traffic indicators
     const capacityPercentage = (gym.currnt_users / gym.MaxCapacity) * 100;
     const trafficStatus = getTrafficStatus(capacityPercentage);
 
