@@ -16,10 +16,9 @@ const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
 const authenticate = require("./middleware/authentication");
 
-// Setup cookie parser for signed cookies
+
 app.use(cookieParser(process.env.COOKIE_SECRET || "fittlr-cookie-secret"));
 
-// Session setup for Passport.js
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "fittlr-session-secret",
@@ -28,7 +27,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
 );
