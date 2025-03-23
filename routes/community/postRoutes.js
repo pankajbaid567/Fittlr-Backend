@@ -7,11 +7,11 @@ const {
   updatePost,
   deletePost,
 } = require("../../controllers/community/postController");
-const authenticateUser = require("../../middleware/authentication");
+//const authenticateUser = require("../../middleware/authentication");
 const { uploadPostImage } = require("../../middleware/upload");
 
 // Apply authentication middleware to all routes
-router.use(authenticateUser);
+//router.use(authenticateUser);
 
 // Post routes
 router

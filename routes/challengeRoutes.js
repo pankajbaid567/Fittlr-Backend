@@ -12,7 +12,7 @@ const {
 const router = express.Router();
 const authenticateUser = require("../middleware/authentication");
 
-router.use(authenticateUser);
+// router.use(authenticateUser);
 
 router.post("/send/:receiverId", sendChallenge);
 router.get("/received", getReceivedChallenges);
