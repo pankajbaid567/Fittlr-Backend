@@ -1,57 +1,56 @@
-const { StatusCodes } = require('http-status-codes');
-const prisma = require('../../db/connect');
+const { StatusCodes } = require("http-status-codes");
+const prisma = require("../../db/connect");
 const {
   BadRequestError,
   NotFoundError,
   UnauthenticatedError,
-} = require('../../errors/index');
+} = require("../../errors/index");
 
 // Create a new comment
 const createComment = async (req, res) => {
-    const { postId } = req.params;
-    const { content } = req.body;
-  const userId = req.user.googleId;
-  
+  const { postId } = req.params;
+  const { content, userId } = req.body;
+
   // Validate required fields
-  if (!postId || !content) {
-    throw new BadRequestError('Post ID and content are required');
+  if (!postId || !content || !userId) {
+    throw new BadRequestError("Post ID, content, and userId are required");
   }
-  
+
   try {
     // Check if post exists
     const post = await prisma.post.findUnique({
-      where: { id: postId }
+      where: { id: postId },
     });
-    
+
     if (!post) {
-      throw new NotFoundError('Post not found');
+      throw new NotFoundError("Post not found");
     }
-    
+
     // Create comment
     const comment = await prisma.comment.create({
       data: {
         content,
         post: { connect: { id: postId } },
-        user: { connect: { googleId: userId } } // Changed from id to googleId
+        user: { connect: { googleId: userId } },
       },
       include: {
         user: {
           select: {
-            googleId: true, // Changed from id
-            name: true,     // Changed from username
-            profileImg: true // Changed from avatar
-          }
-        }
-      }
+            googleId: true,
+            name: true,
+            profileImg: true,
+          },
+        },
+      },
     });
-    
+
     res.status(StatusCodes.CREATED).json({ comment });
   } catch (error) {
-    console.error('Error creating comment:', error);
+    console.error("Error creating comment:", error);
     if (error instanceof BadRequestError || error instanceof NotFoundError) {
       throw error;
     }
-    throw new Error('Failed to create comment');
+    throw new Error("Failed to create comment");
   }
 };
 
@@ -60,93 +59,102 @@ const getComments = async (req, res) => {
   const { postId } = req.params;
   const { page = 1, limit = 10 } = req.query;
   const offset = (page - 1) * limit;
-  
+
   try {
     // Check if post exists
     const post = await prisma.post.findUnique({
-      where: { id: postId }
+      where: { id: postId },
     });
-    
+
     if (!post) {
-      throw new NotFoundError('Post not found');
+      throw new NotFoundError("Post not found");
     }
-    
+
     // Get comments
     const comments = await prisma.comment.findMany({
       where: { postId },
       include: {
         user: {
           select: {
-            googleId: true, // Changed from id
-            name: true,     // Changed from username
-            profileImg: true // Changed from avatar
-          }
-        }
+            googleId: true,
+            name: true,
+            profileImg: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       skip: offset,
-      take: parseInt(limit)
+      take: parseInt(limit),
     });
-    
+
     // Get total count for pagination
     const totalComments = await prisma.comment.count({
-      where: { postId }
+      where: { postId },
     });
-    
+
     const totalPages = Math.ceil(totalComments / limit);
-    
+
     res.status(StatusCodes.OK).json({
       comments,
       currentPage: parseInt(page),
       totalPages,
-      totalComments
+      totalComments,
     });
   } catch (error) {
-    console.error('Error fetching comments:', error);
+    console.error("Error fetching comments:", error);
     if (error instanceof NotFoundError) {
       throw error;
     }
-    throw new Error('Failed to fetch comments');
+    throw new Error("Failed to fetch comments");
   }
 };
 
 // Delete a comment
 const deleteComment = async (req, res) => {
   const { commentId } = req.params;
-  const userId = req.user.googleId;
-  
+  const { userId } = req.body;
+
+  if (!userId) {
+    throw new BadRequestError("User ID is required");
+  }
+
   try {
     // Get comment to check ownership
     const comment = await prisma.comment.findUnique({
-      where: { id: commentId }
+      where: { id: commentId },
     });
-    
+
     if (!comment) {
-      throw new NotFoundError('Comment not found');
+      throw new NotFoundError("Comment not found");
     }
-    
+
     // Check if user is the owner of the comment
-    if (comment.userId !== userId) { // Changed from req.user.userId
-      throw new UnauthenticatedError('You are not authorized to delete this comment');
+    if (comment.userId !== userId) {
+      throw new UnauthenticatedError(
+        "You are not authorized to delete this comment"
+      );
     }
-    
+
     // Delete comment
     await prisma.comment.delete({
-      where: { id: commentId }
+      where: { id: commentId },
     });
-    
+
     res.status(StatusCodes.NO_CONTENT).send();
   } catch (error) {
-    console.error('Error deleting comment:', error);
-    if (error instanceof NotFoundError || error instanceof UnauthenticatedError) {
+    console.error("Error deleting comment:", error);
+    if (
+      error instanceof NotFoundError ||
+      error instanceof UnauthenticatedError
+    ) {
       throw error;
     }
-    throw new Error('Failed to delete comment');
+    throw new Error("Failed to delete comment");
   }
 };
 
 module.exports = {
   createComment,
   getComments,
-  deleteComment
+  deleteComment,
 };
