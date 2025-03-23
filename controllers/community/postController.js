@@ -5,8 +5,8 @@ const cloudflareImageService = require("../../services/cloudflare");
 
 // Create a new post
 const createPost = async (req, res) => {
-  const { content } = req.body;
-  const userId = req.user.googleId;
+  const { content, userId } = req.body;
+  // const userId = req.user.googleId;
 
   console.log("User ID from request:", userId);
 
@@ -19,6 +19,40 @@ const createPost = async (req, res) => {
 
     // Process image if it exists
     if (req.file) {
+      // Check if Cloudflare credentials are properly configured
+      if (
+        !process.env.CLOUDFLARE_ACCOUNT_ID ||
+        !process.env.CLOUDFLARE_API_TOKEN
+      ) {
+        console.warn(
+          "Cloudflare credentials missing. Image upload will be skipped."
+        );
+
+        // Save post without image if Cloudflare is not configured
+        const post = await prisma.post.create({
+          data: {
+            content,
+            imageUrl: null,
+            user: { connect: { googleId: userId } },
+          },
+          include: {
+            user: {
+              select: {
+                googleId: true,
+                name: true,
+                profileImg: true,
+              },
+            },
+          },
+        });
+
+        return res.status(StatusCodes.CREATED).json({
+          post,
+          warning:
+            "Image was not uploaded due to missing Cloudflare configuration.",
+        });
+      }
+
       const imageBuffer = req.file.buffer;
       const fileName = `post_${Date.now()}_${req.file.originalname}`;
 
@@ -49,6 +83,41 @@ const createPost = async (req, res) => {
     res.status(StatusCodes.CREATED).json({ post });
   } catch (error) {
     console.error("Error creating post:", error);
+
+    // Create post without image if Cloudflare upload fails
+    if (
+      error.message?.includes("Cloudflare upload error") ||
+      error.code === "ERR_BAD_REQUEST"
+    ) {
+      try {
+        const post = await prisma.post.create({
+          data: {
+            content,
+            imageUrl: null,
+            user: { connect: { googleId: userId } },
+          },
+          include: {
+            user: {
+              select: {
+                googleId: true,
+                name: true,
+                profileImg: true,
+              },
+            },
+          },
+        });
+
+        return res.status(StatusCodes.CREATED).json({
+          post,
+          warning:
+            "Image upload failed, but post was created without an image.",
+        });
+      } catch (innerError) {
+        console.error("Error creating post without image:", innerError);
+        throw innerError;
+      }
+    }
+
     throw error;
   }
 };
@@ -148,8 +217,8 @@ const getPost = async (req, res) => {
 // Update a post
 const updatePost = async (req, res) => {
   const { id } = req.params;
-  const { content } = req.body;
-  const userId = req.user.googleId;
+  const { content, userId } = req.body;
+  // const userId = req.user.googleId; // Comment out this line
 
   try {
     // Check if post exists and user is the author
@@ -227,7 +296,8 @@ const updatePost = async (req, res) => {
 // Delete a post
 const deletePost = async (req, res) => {
   const { id } = req.params;
-  const userId = req.user.googleId;
+  const { userId } = req.body;
+  // const userId = req.user.googleId; // Comment out this line
 
   try {
     // Check if post exists and user is the author

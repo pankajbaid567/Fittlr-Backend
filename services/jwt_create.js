@@ -1,3 +1,4 @@
+const { google } = require("googleapis");
 const jwt = require("jsonwebtoken");
 
 // Function to create a JWT for a given user
@@ -5,7 +6,7 @@ const createJWT = (user) => {
   // Create token with consistent payload structure
   return jwt.sign(
     {
-      userId: user.id, // User ID
+      userId: googleId, // User ID
       name: user.name, // User's name
       email: user.email, // User's email
     },

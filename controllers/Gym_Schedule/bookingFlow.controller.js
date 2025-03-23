@@ -50,22 +50,17 @@ const getAvailability = async (req, res) => {
         const checkDate = new Date();
         checkDate.setDate(currentDate.getDate() + i);
 
-        // Get day of week (0-6, Sunday-Saturday)
         const dayOfWeek = checkDate.getDay();
 
-        // Check if gym is open on this day
         const openingHour = gym.openingHours.find(
           (oh) => oh.dayOfWeek === dayOfWeek
         );
 
         if (openingHour) {
-          // Predict traffic based on day of week
           const predictedTraffic = predictTrafficForDay(dayOfWeek);
 
-          // Format date as YYYY-MM-DD
           const formattedDate = checkDate.toISOString().split("T")[0];
 
-          // Parse opening and closing times
           const [openHour, openMinute] = openingHour.openTime
             .split(":")
             .map(Number);
