@@ -11,8 +11,8 @@ const sendChallenge = async (req, res) => {
   // Get receiverId from query parameters
   const {receiverId} = req.params;
   // Get other data from body
-  const { type, description, count, duration } = req.body;
-  const senderId = req.user.googleId; // Changed from userId to googleId
+  const { type, description, count, duration ,senderId} = req.body;
+ // const senderId = req.body; // Changed from userId to googleId
 
   if (!receiverId || !type || !description) {
     throw new BadRequestError('Receiver, type, and description are required');
@@ -77,7 +77,7 @@ const sendChallenge = async (req, res) => {
 
 // Get challenges received by the user
 const getReceivedChallenges = async (req, res) => {
-  const userId = req.user.googleId;
+  const userId = req.params;
   const { status, page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
   
@@ -122,12 +122,17 @@ const getReceivedChallenges = async (req, res) => {
 
 // Get challenges sent by the user
 const getSentChallenges = async (req, res) => {
-  const userId = req.user.googleId;
-  const { status, page = 1, limit = 10 } = req.query;
+  // Extract userId as a string from req.query
+  const { userId, status, page = 1, limit = 10 } = req.query;
+  
+  if (!userId) {
+    throw new BadRequestError('User ID is required');
+  }
+  
   const skip = (page - 1) * limit;
   
   try {
-    const where = { senderId: userId };
+    const where = { senderId: userId };  // Now userId is a string, not an object
     if (status) {
       where.status = status;
     }
@@ -213,8 +218,8 @@ const getChallenge = async (req, res) => {
 // Update challenge status (accept, reject, complete)
 const updateChallengeStatus = async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
-  const userId = req.user.googleId;
+  const { status,userId } = req.body;
+  //const userId = req.user.googleId;
 
   if (!status) {
     throw new BadRequestError('Status is required');

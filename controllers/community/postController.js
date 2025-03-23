@@ -5,8 +5,8 @@ const cloudflareImageService = require("../../services/cloudflare");
 
 // Create a new post
 const createPost = async (req, res) => {
-  const { content, userId } = req.body;
-  // const userId = req.user.googleId;
+  const { userId,content } = req.body;
+  //const userId = req.user.googleId;
 
   console.log("User ID from request:", userId);
 
@@ -217,8 +217,8 @@ const getPost = async (req, res) => {
 // Update a post
 const updatePost = async (req, res) => {
   const { id } = req.params;
-  const { content, userId } = req.body;
-  // const userId = req.user.googleId; // Comment out this line
+  const { userId,content } = req.body;
+  //const userId = req.user.googleId;
 
   try {
     // Check if post exists and user is the author
@@ -297,7 +297,7 @@ const updatePost = async (req, res) => {
 const deletePost = async (req, res) => {
   const { id } = req.params;
   const { userId } = req.body;
-  // const userId = req.user.googleId; // Comment out this line
+  //const userId = req.user.googleId;
 
   try {
     // Check if post exists and user is the author
