@@ -45,31 +45,96 @@ const getAvailability = async (req, res) => {
       const currentDate = new Date();
       const availableDates = [];
 
-      // Check next 30 days for availability
-      for (let i = 0; i < 30; i++) {
+      // Check next 5 days for availability instead of 30 days
+      for (let i = 0; i < 5; i++) {
         const checkDate = new Date();
         checkDate.setDate(currentDate.getDate() + i);
 
-        // Get day of week (0-6, Sunday-Saturday)
         const dayOfWeek = checkDate.getDay();
 
-        // Check if gym is open on this day
         const openingHour = gym.openingHours.find(
           (oh) => oh.dayOfWeek === dayOfWeek
         );
 
         if (openingHour) {
-          // Predict traffic based on day of week
           const predictedTraffic = predictTrafficForDay(dayOfWeek);
 
-          // If gym is open, add to available dates
+          const formattedDate = checkDate.toISOString().split("T")[0];
+
+          const [openHour, openMinute] = openingHour.openTime
+            .split(":")
+            .map(Number);
+          const [closeHour, closeMinute] = openingHour.closeTime
+            .split(":")
+            .map(Number);
+
+          // Create array of hourly time slots with availability info
+          const availableTimes = [];
+
+          // Create a date object for this specific date
+          const startDateTime = new Date(formattedDate);
+          startDateTime.setHours(openHour, openMinute, 0, 0);
+
+          const endDateTime = new Date(formattedDate);
+          endDateTime.setHours(closeHour, closeMinute, 0, 0);
+
+          // Generate hourly slots
+          let currentSlotStart = new Date(startDateTime);
+
+          while (currentSlotStart < endDateTime) {
+            // Calculate end of this time slot (1 hour later)
+            const currentSlotEnd = new Date(currentSlotStart);
+            currentSlotEnd.setHours(currentSlotEnd.getHours() + 1);
+
+            // Don't go past closing time
+            if (currentSlotEnd > endDateTime) {
+              currentSlotEnd.setTime(endDateTime.getTime());
+            }
+
+            // Format time in a human-readable format (e.g., "6:00 am")
+            const formattedTime = currentSlotStart.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            });
+
+            // Get bookings for this time slot on this date
+            // Note: This requires a separate DB query for each hour of each date (30 days)
+            // Consider performance implications for production environments
+            const existingBookings = await prisma.gymBooking.count({
+              where: {
+                gymId: parseInt(gymId),
+                status: { in: ["confirmed", "pending"] },
+                startTime: {
+                  gte: currentSlotStart,
+                  lt: currentSlotEnd,
+                },
+              },
+            });
+
+            // Calculate availability
+            const availableCapacity = gym.MaxCapacity - existingBookings;
+
+            availableTimes.push({
+              time: formattedTime,
+              bookings: existingBookings,
+              available: availableCapacity,
+              isAvailable: availableCapacity > 0,
+            });
+
+            // Move to next hour
+            currentSlotStart = currentSlotEnd;
+          }
+
+          // If gym is open, add to available dates with hourly availability
           availableDates.push({
-            date: checkDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+            date: formattedDate,
             dayOfWeek,
             openTime: openingHour.openTime,
             closeTime: openingHour.closeTime,
             predictedTraffic: predictedTraffic,
             trafficIndicator: getTrafficIndicator(predictedTraffic),
+            availableTimes: availableTimes,
           });
         }
       }
@@ -161,9 +226,20 @@ const getAvailability = async (req, res) => {
             timeBasedTraffic
           );
 
+          // Format time in a human-readable format (e.g., "6:00 am")
+          const formattedTime = currentSlotStart.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          });
+
           timeSlots.push({
             startTime: currentSlotStart.toISOString(),
             endTime: currentSlotEnd.toISOString(),
+            formattedTime: formattedTime,
+            bookings: existingBookings,
+            available: availableCapacity,
+            totalCapacity: gym.MaxCapacity,
             availableCapacity,
             capacityPercentage: Math.round(slotCapacityPercentage),
             isAvailable: availableCapacity > 0,
@@ -180,6 +256,14 @@ const getAvailability = async (req, res) => {
         // Move to next slot
         currentSlotStart = currentSlotEnd;
       }
+
+      // Add hourly availability summary in the requested format
+      response.hourlyAvailability = timeSlots.map((slot) => ({
+        time: slot.formattedTime,
+        bookings: slot.bookings,
+        available: slot.available,
+        isAvailable: slot.isAvailable,
+      }));
 
       response.timeSlots = timeSlots;
       return res.status(StatusCodes.OK).json(response);

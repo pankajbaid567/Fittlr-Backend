@@ -6,9 +6,35 @@ class CloudflareImageService {
     this.apiToken = process.env.CLOUDFLARE_API_TOKEN;
     this.accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
     this.deliveryUrl = process.env.CLOUDFLARE_IMAGE_DELIVERY_URL;
+
+    // Validate configuration during initialization
+    this.isConfigured = Boolean(
+      this.apiToken && this.accountId && this.deliveryUrl
+    );
+    if (!this.isConfigured) {
+      console.warn(
+        "CloudflareImageService: Missing configuration values. Image uploads will not work properly."
+      );
+      console.warn(
+        `CLOUDFLARE_ACCOUNT_ID: ${this.accountId ? "Set" : "Missing"}`
+      );
+      console.warn(
+        `CLOUDFLARE_API_TOKEN: ${this.apiToken ? "Set" : "Missing"}`
+      );
+      console.warn(
+        `CLOUDFLARE_IMAGE_DELIVERY_URL: ${this.deliveryUrl ? "Set" : "Missing"}`
+      );
+    }
   }
 
   async uploadImage(imageBuffer, fileName) {
+    // Check if service is properly configured
+    if (!this.isConfigured) {
+      throw new Error(
+        "Cloudflare service not properly configured. Check environment variables."
+      );
+    }
+
     try {
       const form = new FormData();
       form.append("file", imageBuffer, {

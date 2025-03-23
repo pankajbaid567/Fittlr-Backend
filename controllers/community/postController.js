@@ -19,6 +19,40 @@ const createPost = async (req, res) => {
 
     // Process image if it exists
     if (req.file) {
+      // Check if Cloudflare credentials are properly configured
+      if (
+        !process.env.CLOUDFLARE_ACCOUNT_ID ||
+        !process.env.CLOUDFLARE_API_TOKEN
+      ) {
+        console.warn(
+          "Cloudflare credentials missing. Image upload will be skipped."
+        );
+
+        // Save post without image if Cloudflare is not configured
+        const post = await prisma.post.create({
+          data: {
+            content,
+            imageUrl: null,
+            user: { connect: { googleId: userId } },
+          },
+          include: {
+            user: {
+              select: {
+                googleId: true,
+                name: true,
+                profileImg: true,
+              },
+            },
+          },
+        });
+
+        return res.status(StatusCodes.CREATED).json({
+          post,
+          warning:
+            "Image was not uploaded due to missing Cloudflare configuration.",
+        });
+      }
+
       const imageBuffer = req.file.buffer;
       const fileName = `post_${Date.now()}_${req.file.originalname}`;
 
@@ -49,6 +83,41 @@ const createPost = async (req, res) => {
     res.status(StatusCodes.CREATED).json({ post });
   } catch (error) {
     console.error("Error creating post:", error);
+
+    // Create post without image if Cloudflare upload fails
+    if (
+      error.message?.includes("Cloudflare upload error") ||
+      error.code === "ERR_BAD_REQUEST"
+    ) {
+      try {
+        const post = await prisma.post.create({
+          data: {
+            content,
+            imageUrl: null,
+            user: { connect: { googleId: userId } },
+          },
+          include: {
+            user: {
+              select: {
+                googleId: true,
+                name: true,
+                profileImg: true,
+              },
+            },
+          },
+        });
+
+        return res.status(StatusCodes.CREATED).json({
+          post,
+          warning:
+            "Image upload failed, but post was created without an image.",
+        });
+      } catch (innerError) {
+        console.error("Error creating post without image:", innerError);
+        throw innerError;
+      }
+    }
+
     throw error;
   }
 };
@@ -153,7 +222,7 @@ const updatePost = async (req, res) => {
 
   try {
     // Check if post exists and user is the author
-    const post = await prisma.post.findUnique({
+    const post = await prisma.post.findFirst({
       where: { id },
     });
 
@@ -259,7 +328,7 @@ const deletePost = async (req, res) => {
       where: { id },
     });
 
-    res.status(StatusCodes.NO_CONTENT).send();
+    res.status(StatusCodes.OK).json({ message: "Post deleted successfully" });
   } catch (error) {
     console.error("Error deleting post:", error);
     throw error;

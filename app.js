@@ -24,7 +24,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "dev",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
@@ -42,11 +42,18 @@ const rateLimiter = require("express-rate-limit");
 
 // CORS Configuration
 const corsOptions = {
-  origin: process.env.CLIENT_URL || "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: process.env.NODE_ENV === "dev" ? process.env.CLIENT_URL : "*",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+  ],
   credentials: true,
   optionsSuccessStatus: StatusCodes.OK,
+  maxAge: process.env.NODE_ENV === "dev" ? 600 : 86400, // 10 mins in prod, 24h in dev
 };
 
 // Middleware
@@ -71,8 +78,10 @@ const likeRoutes = require("./routes/community/likeRoutes");
 const challengeRoutes = require("./routes/challengeRoutes");
 const followRoutes = require("./routes/community/followRoutes");
 
+const commentRouter = require("./routes/community/commentRoutes");
+
 app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRoutere);
-app.use("/api/v1/user/profile", authenticate, profile);
+app.use("/api/v1/user/profile", profile);
 // app.use("/api/v1/user/ticket", authenticate, ticket);
 app.use("/api/v1/user/ticket", ticket);
 app.use("/api/v1/user/auth/fallback", fallback);
@@ -80,11 +89,13 @@ app.use("/api/v1/user/booking", booking);
 
 app.use("/api/v1/user/auth/google", googleAuth);
 
-app.use("/api/v1/user/community/posts", postRoutes);
 app.use("/api/v1/user/community/comments", commentRoutes);
 app.use("/api/v1/user/community/likes", likeRoutes);
 app.use("/api/v1/user/challenges", challengeRoutes);
 app.use("/api/v1/user/users", followRoutes);
+app.use("/api/v1/user/community/posts", postRoutes);
+
+app.use("/api/comment", commentRouter);
 
 // Root route
 app.get("/", (req, res) => {
