@@ -13,9 +13,6 @@ const { uploadPostImage } = require("../../middleware/upload");
 // Apply authentication middleware to all routes
 //router.use(authenticateUser);
 // const authenticateUser = require("../../middleware/authentication");
-const { uploadPostImage } = require("../../middleware/upload");
-
-
 
 // Post routes
 router
