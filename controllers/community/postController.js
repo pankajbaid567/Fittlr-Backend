@@ -222,7 +222,7 @@ const updatePost = async (req, res) => {
 
   try {
     // Check if post exists and user is the author
-    const post = await prisma.post.findUnique({
+    const post = await prisma.post.findFirst({
       where: { id },
     });
 
@@ -328,7 +328,7 @@ const deletePost = async (req, res) => {
       where: { id },
     });
 
-    res.status(StatusCodes.NO_CONTENT).send();
+    res.status(StatusCodes.OK).json({ message: "Post deleted successfully" });
   } catch (error) {
     console.error("Error deleting post:", error);
     throw error;

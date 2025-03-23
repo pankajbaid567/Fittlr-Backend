@@ -79,7 +79,7 @@ const challengeRoutes = require("./routes/challengeRoutes");
 const followRoutes = require("./routes/community/followRoutes");
 
 app.use("/api/v1/user/auth/google/fit", authenticate, googleFitRoutere);
-app.use("/api/v1/user/profile", authenticate, profile);
+app.use("/api/v1/user/profile", profile);
 // app.use("/api/v1/user/ticket", authenticate, ticket);
 app.use("/api/v1/user/ticket", ticket);
 app.use("/api/v1/user/auth/fallback", fallback);
