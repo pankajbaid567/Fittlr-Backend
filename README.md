@@ -1,5 +1,9 @@
 # Fittlr Backend
 
+## Postman Link
+
+https://www.postman.com/inculcate-team/workspace/fittlr/request/40649936-14432d69-3c8d-4265-b6f7-62b3c07896eb?action=share&creator=40649936&ctx=documentation
+
 ## Introduction
 
 Fittlr is a comprehensive fitness application that provides users with a platform to manage their fitness activities, track their progress, and engage with a community of fitness enthusiasts. The backend of Fittlr is built using Node.js, Express, and Prisma, and it provides a robust API for managing user authentication, fitness data, gym bookings, and more.
